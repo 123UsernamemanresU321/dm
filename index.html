@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Decision-Maker | Multi-Criteria Decision Engine</title>
+    <meta name="description"
+        content="Make rational, consistent decisions using weighted criteria analysis, scenario testing, and clear recommendations.">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/print.css" media="print">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-content">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2" />
+                    <path d="M10 16L14 20L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                <h1>The Decision-Maker</h1>
+            </div>
+            <div class="header-actions">
+                <button id="load-decision-btn" class="btn btn-ghost" title="Load saved decision">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                    </svg>
+                    <span>Load</span>
+                </button>
+                <button id="theme-toggle" class="btn btn-icon" title="Toggle theme">
+                    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5" />
+                        <path
+                            d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                    </svg>
+                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+        <!-- Input Section -->
+        <section id="input-section" class="section">
+            <div class="container">
+                <!-- Decision Title -->
+                <div class="decision-header">
+                    <div class="decision-header-row">
+                        <label for="decision-title" class="section-label">What decision are you making?</label>
+                        <button id="use-template-btn" class="btn-template" title="Start from a template">
+                            📋 Use Template
+                        </button>
+                    </div>
+                    <input type="text" id="decision-title" class="input-title"
+                        placeholder="e.g., Which laptop should I buy?" autocomplete="off">
+                </div>
+
+                <!-- Options Panel -->
+                <div class="panel options-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7" rx="1" />
+                                <rect x="14" y="3" width="7" height="7" rx="1" />
+                                <rect x="3" y="14" width="7" height="7" rx="1" />
+                                <rect x="14" y="14" width="7" height="7" rx="1" />
+                            </svg>
+                            Options to Compare
+                        </h2>
+                        <span class="badge" id="options-count">0</span>
+                    </div>
+                    <div id="options-list" class="options-list"></div>
+                    <div class="button-row">
+                        <button id="add-option-btn" class="btn btn-secondary btn-add">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                            Add Option
+                        </button>
+                        <button id="ai-suggest-btn" class="btn btn-ghost ai-btn"
+                            title="AI suggests options based on your decision">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M12 3v1m0 16v1m-9-9h1m16 0h1m-2.636-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707" />
+                                <circle cx="12" cy="12" r="4" />
+                            </svg>
+                            ✨ AI Suggest
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Criteria Panel -->
+                <div class="panel criteria-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 20V10M18 20V4M6 20v-4" />
+                            </svg>
+                            Criteria & Weights
+                        </h2>
+                        <span class="badge" id="criteria-count">0</span>
+                    </div>
+                    <p class="panel-description">Set how important each criterion is (1 = least, 10 = most important)
+                    </p>
+                    <div id="criteria-list" class="criteria-list"></div>
+                    <button id="add-criterion-btn" class="btn btn-secondary btn-add">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        Add Criterion
+                    </button>
+                </div>
+
+                <!-- Scoring Matrix -->
+                <div class="panel matrix-panel" id="matrix-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <line x1="3" y1="9" x2="21" y2="9" />
+                                <line x1="9" y1="21" x2="9" y2="9" />
+                            </svg>
+                            Score Each Option
+                        </h2>
+                        <button id="ai-autoscore-btn" class="btn btn-ghost ai-btn"
+                            title="AI scores options based on typical characteristics">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M15 4V2m0 2v2m0-2h-2m2 0h2" />
+                                <path d="M8.5 8.5l-1.5-1.5" />
+                                <path d="M20 4l-9.5 9.5" />
+                                <path d="M3 21l5-5" />
+                                <path d="M8 16l2 2" />
+                            </svg>
+                            ✨ Auto-Score
+                        </button>
+                    </div>
+                    <p class="panel-description">Rate each option on each criterion (0 = worst, 10 = best)</p>
+                    <div class="matrix-container">
+                        <table id="scoring-matrix" class="scoring-matrix">
+                            <thead id="matrix-header"></thead>
+                            <tbody id="matrix-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Constraints (Optional) -->
+                <details class="panel constraints-panel">
+                    <summary class="panel-header clickable">
+                        <h2 class="panel-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                <path d="M7 11V7a5 5 0 0110 0v4" />
+                            </svg>
+                            Constraints (Optional)
+                        </h2>
+                    </summary>
+                    <div class="constraints-content">
+                        <div class="constraint-row">
+                            <label for="constraint-budget">Budget Limit</label>
+                            <input type="text" id="constraint-budget" placeholder="e.g., $2000">
+                        </div>
+                        <div class="constraint-row">
+                            <label for="constraint-deadline">Decision Deadline</label>
+                            <input type="date" id="constraint-deadline">
+                        </div>
+                        <div class="constraint-row">
+                            <label for="constraint-notes">Additional Notes</label>
+                            <textarea id="constraint-notes" rows="2"
+                                placeholder="Any must-have requirements..."></textarea>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Calculate Button -->
+                <div class="action-bar">
+                    <button id="calculate-btn" class="btn btn-primary btn-large" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                            <polyline points="22,4 12,14.01 9,11.01" />
+                        </svg>
+                        Calculate Recommendation
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Section (Hidden by default) -->
+        <section id="results-section" class="section hidden">
+            <div class="container">
+                <div class="results-header">
+                    <h2 class="section-title">Recommendation</h2>
+                    <div id="confidence-indicator" class="confidence-indicator">
+                        <span class="confidence-label">Confidence:</span>
+                        <span class="confidence-value"></span>
+                        <div class="confidence-dots"></div>
+                    </div>
+                </div>
+
+                <!-- Rankings -->
+                <div id="rankings-container" class="rankings-container"></div>
+
+                <!-- Rationale -->
+                <div class="panel rationale-panel">
+                    <h3 class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                        </svg>
+                        Why This Wins
+                    </h3>
+                    <div id="rationale-content" class="rationale-content"></div>
+                </div>
+
+                <!-- Decision Matrix Display -->
+                <div class="panel matrix-results-panel">
+                    <h3 class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <line x1="3" y1="9" x2="21" y2="9" />
+                            <line x1="9" y1="21" x2="9" y2="9" />
+                        </svg>
+                        Full Decision Matrix
+                    </h3>
+                    <div class="matrix-container">
+                        <table id="results-matrix" class="results-matrix"></table>
+                    </div>
+                </div>
+
+                <!-- Visual Comparison -->
+                <div class="panel visual-comparison-panel">
+                    <h3 class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21.21 15.89A10 10 0 118 2.83" />
+                            <path d="M22 12A10 10 0 0012 2v10z" />
+                        </svg>
+                        Visual Comparison
+                    </h3>
+                    <div id="visual-comparison-container"></div>
+                </div>
+
+                <!-- Sensitivity Analysis -->
+                <div class="panel sensitivity-panel">
+                    <h3 class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                            <path d="M2 17l10 5 10-5" />
+                            <path d="M2 12l10 5 10-5" />
+                        </svg>
+                        Sensitivity Analysis
+                    </h3>
+                    <p class="panel-description">How robust is this decision? What would change the outcome?</p>
+                    <div id="sensitivity-container"></div>
+                </div>
+
+                <!-- Scenario Testing -->
+                <div class="panel scenario-panel">
+                    <h3 class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="4" y1="21" x2="4" y2="14" />
+                            <line x1="4" y1="10" x2="4" y2="3" />
+                            <line x1="12" y1="21" x2="12" y2="12" />
+                            <line x1="12" y1="8" x2="12" y2="3" />
+                            <line x1="20" y1="21" x2="20" y2="16" />
+                            <line x1="20" y1="12" x2="20" y2="3" />
+                            <line x1="1" y1="14" x2="7" y2="14" />
+                            <line x1="9" y1="8" x2="15" y2="8" />
+                            <line x1="17" y1="16" x2="23" y2="16" />
+                        </svg>
+                        What-If Analysis
+                    </h3>
+                    <p class="panel-description">Adjust weights to see how rankings change</p>
+                    <div id="scenario-sliders" class="scenario-sliders"></div>
+                    <div id="scenario-result" class="scenario-result"></div>
+                </div>
+
+                <!-- Actions -->
+                <div class="results-actions">
+                    <button id="save-decision-btn" class="btn btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+                            <polyline points="17,21 17,13 7,13 7,21" />
+                            <polyline points="7,3 7,8 15,8" />
+                        </svg>
+                        Save Decision
+                    </button>
+                    <button id="export-pdf-btn" class="btn btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                            <polyline points="14,2 14,8 20,8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                            <polyline points="10,9 9,9 8,9" />
+                        </svg>
+                        Export PDF
+                    </button>
+                    <button id="new-decision-btn" class="btn btn-ghost">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        New Decision
+                    </button>
+                    <button id="back-to-edit-btn" class="btn btn-ghost">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="19" y1="12" x2="5" y2="12" />
+                            <polyline points="12,19 5,12 12,5" />
+                        </svg>
+                        Edit Decision
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toasts Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Load Decision Modal -->
+    <dialog id="load-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Load Saved Decision</h3>
+                <button class="btn btn-icon modal-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div id="saved-decisions-list" class="saved-decisions-list">
+                <p class="empty-state">No saved decisions yet.</p>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Templates Modal -->
+    <dialog id="templates-modal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3>📋 Choose a Template</h3>
+                <button class="btn btn-icon modal-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div id="templates-list" class="templates-body"></div>
+        </div>
+    </dialog>
+
+    <!-- Scripts -->
+    <script src="js/utils/storage.js"></script>
+    <script src="js/utils/scoring.js"></script>
+    <script src="js/utils/ui.js"></script>
+    <script src="js/utils/ai.js"></script>
+    <script src="js/components/templates.js"></script>
+    <script src="js/components/decisionForm.js"></script>
+    <script src="js/components/matrix.js"></script>
+    <script src="js/components/visualComparison.js"></script>
+    <script src="js/components/sensitivityAnalysis.js"></script>
+    <script src="js/components/results.js"></script>
+    <script src="js/components/scenario.js"></script>
+    <script src="js/components/coach.js"></script>
+    <script src="js/components/history.js"></script>
+    <script src="js/components/reminders.js"></script>
+    <script src="js/components/voiceInput.js"></script>
+    <script src="js/components/monteCarlo.js"></script>
+    <script src="js/components/collaboration.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

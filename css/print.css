@@ -1,0 +1,140 @@
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+
+@media print {
+
+    /* Reset for print */
+    * {
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    /* Hide non-essential elements */
+    .app-header,
+    .btn,
+    button,
+    #theme-toggle,
+    #load-decision-btn,
+    .results-actions,
+    .scenario-panel,
+    .toast-container,
+    .modal,
+    details summary::after,
+    .btn-remove {
+        display: none !important;
+    }
+
+    /* Show results section */
+    #input-section {
+        display: none !important;
+    }
+
+    #results-section {
+        display: block !important;
+    }
+
+    /* Layout adjustments */
+    body {
+        font-size: 12pt;
+        line-height: 1.5;
+        padding: 0;
+        margin: 0;
+    }
+
+    .container {
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
+    .section {
+        padding: 0;
+    }
+
+    /* Print header */
+    .results-header::before {
+        content: 'The Decision-Maker - Analysis Report';
+        display: block;
+        font-size: 18pt;
+        font-weight: bold;
+        margin-bottom: 12pt;
+        padding-bottom: 6pt;
+        border-bottom: 2px solid black;
+    }
+
+    /* Panels */
+    .panel {
+        border: 1px solid #ccc;
+        padding: 12pt;
+        margin-bottom: 12pt;
+        page-break-inside: avoid;
+    }
+
+    .panel-title {
+        font-size: 12pt;
+        font-weight: bold;
+        margin-bottom: 6pt;
+    }
+
+    .panel-title svg {
+        display: none;
+    }
+
+    /* Rankings */
+    .rankings-container {
+        margin-bottom: 12pt;
+    }
+
+    .ranking-card {
+        border: 1px solid #ccc;
+        padding: 12pt;
+        margin-bottom: 6pt;
+        page-break-inside: avoid;
+    }
+
+    .ranking-badge {
+        border: 2px solid black;
+        background: white !important;
+    }
+
+    .ranking-score {
+        font-size: 14pt;
+    }
+
+    /* Tables */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        page-break-inside: avoid;
+    }
+
+    th,
+    td {
+        border: 1px solid #ccc;
+        padding: 6pt;
+        text-align: left;
+    }
+
+    th {
+        background: #f0f0f0 !important;
+        font-weight: bold;
+    }
+
+    /* Confidence indicator */
+    .confidence-dots {
+        display: none;
+    }
+
+    /* Page breaks */
+    .matrix-results-panel {
+        page-break-before: always;
+    }
+
+    /* Footer */
+    @page {
+        margin: 1in;
+    }
+}
