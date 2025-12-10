@@ -123,6 +123,37 @@
                     </button>
                 </div>
 
+
+                <!-- Constraints (Optional) -->
+                <details class="panel constraints-panel" open>
+                    <summary class="panel-header clickable">
+                        <h2 class="panel-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                <path d="M7 11V7a5 5 0 0110 0v4" />
+                            </svg>
+                            Constraints (Optional)
+                        </h2>
+                    </summary>
+                    <div class="constraints-content">
+                        <p class="panel-description" style="margin-bottom: var(--spacing-sm);">Add constraints BEFORE
+                            using AI Auto-Score for best results</p>
+                        <div class="constraint-row">
+                            <label for="constraint-budget">Budget Limit</label>
+                            <input type="text" id="constraint-budget" placeholder="e.g., $2000">
+                        </div>
+                        <div class="constraint-row">
+                            <label for="constraint-deadline">Decision Deadline</label>
+                            <input type="date" id="constraint-deadline">
+                        </div>
+                        <div class="constraint-row">
+                            <label for="constraint-notes">Additional Notes</label>
+                            <textarea id="constraint-notes" rows="2"
+                                placeholder="Any must-have requirements..."></textarea>
+                        </div>
+                    </div>
+                </details>
+
                 <!-- Scoring Matrix -->
                 <div class="panel matrix-panel" id="matrix-panel">
                     <div class="panel-header">
@@ -154,34 +185,6 @@
                         </table>
                     </div>
                 </div>
-
-                <!-- Constraints (Optional) -->
-                <details class="panel constraints-panel">
-                    <summary class="panel-header clickable">
-                        <h2 class="panel-title">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                                <path d="M7 11V7a5 5 0 0110 0v4" />
-                            </svg>
-                            Constraints (Optional)
-                        </h2>
-                    </summary>
-                    <div class="constraints-content">
-                        <div class="constraint-row">
-                            <label for="constraint-budget">Budget Limit</label>
-                            <input type="text" id="constraint-budget" placeholder="e.g., $2000">
-                        </div>
-                        <div class="constraint-row">
-                            <label for="constraint-deadline">Decision Deadline</label>
-                            <input type="date" id="constraint-deadline">
-                        </div>
-                        <div class="constraint-row">
-                            <label for="constraint-notes">Additional Notes</label>
-                            <textarea id="constraint-notes" rows="2"
-                                placeholder="Any must-have requirements..."></textarea>
-                        </div>
-                    </div>
-                </details>
 
                 <!-- Calculate Button -->
                 <div class="action-bar">
