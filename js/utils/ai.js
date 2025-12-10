@@ -248,6 +248,147 @@ Return ONLY a JSON array in this format:
             // Fall back to score-based generation
             return this.generateProsCons(rankings, criteria);
         }
+    },
+
+    /**
+     * Analyze constraint notes using AI
+     * Returns compliance scores (0-10) for each option based on how well they meet the notes requirements
+     */
+    async analyzeConstraintNotes(constraintNotes, options) {
+        if (!constraintNotes || constraintNotes.trim() === '' || options.length === 0) {
+            return null;
+        }
+
+        const optionNames = options.map(o => o.name);
+
+        const prompt = `Analyze these decision constraints/requirements:
+"${constraintNotes}"
+
+For each option below, rate how well it would meet these constraints on a 0-10 scale:
+- 10 = Fully complies with all constraints
+- 5 = Partially complies or unclear
+- 0 = Clearly violates the constraints
+
+Options to evaluate:
+${optionNames.map((name, i) => `${i + 1}. ${name}`).join('\n')}
+
+Return ONLY a JSON object in this format:
+{
+  "scores": {
+    "Option Name": 8,
+    "Another Option": 5
+  },
+  "reasoning": {
+    "Option Name": "Brief explanation of compliance"
+  }
+}`;
+
+        try {
+            const response = await this.chat([
+                { role: 'system', content: 'You are a constraint compliance analyst. Evaluate how well each option meets the stated requirements. Always respond with valid JSON only.' },
+                { role: 'user', content: prompt }
+            ], { temperature: 0.3, maxTokens: 800 });
+
+            const cleaned = response.trim().replace(/```json\n?|\n?```/g, '');
+            const result = JSON.parse(cleaned);
+
+            // Map to option IDs
+            return options.map(option => ({
+                id: option.id,
+                name: option.name,
+                constraintCompliance: result.scores?.[option.name] ?? 5,
+                constraintReasoning: result.reasoning?.[option.name] ?? ''
+            }));
+        } catch (e) {
+            console.error('Error analyzing constraint notes:', e);
+            return null;
+        }
+    },
+
+    /**
+     * Auto-score with constraint context included in prompt
+     */
+    async autoScoreWithConstraints(decisionTitle, options, criteria, constraints) {
+        const optionNames = options.map(o => o.name);
+        const criteriaNames = criteria.map(c => c.name);
+
+        let constraintContext = '';
+        if (constraints) {
+            if (constraints.budget) constraintContext += `\nBudget limit: ${constraints.budget}`;
+            if (constraints.deadline) constraintContext += `\nDeadline: ${constraints.deadline}`;
+            if (constraints.notes) constraintContext += `\nAdditional requirements: ${constraints.notes}`;
+        }
+
+        const prompt = `Decision: "${decisionTitle}"
+${constraintContext ? '\nCONSTRAINTS:' + constraintContext + '\n' : ''}
+Options to evaluate:
+${optionNames.map((name, i) => `${i + 1}. ${name}`).join('\n')}
+
+Criteria to score on (0-10 scale where 10=BEST, 0=WORST for the decision-maker):
+${criteriaNames.map((name, i) => `${i + 1}. ${name}`).join('\n')}
+
+IMPORTANT SCORING RULES:
+- Scores represent DESIRABILITY (10 = most desirable outcome, 0 = least desirable)
+- For COST/PRICE criteria: LOWER cost = HIGHER score
+- For BENEFIT criteria: MORE benefit = HIGHER score  
+- For TIME criteria: Usually FASTER/SHORTER = HIGHER score
+- For RISK criteria: LOWER risk = HIGHER score
+- CONSIDER THE CONSTRAINTS when scoring - options that violate constraints should score lower on relevant criteria
+
+Return ONLY a JSON object in this exact format:
+{
+  "scores": {
+    "Option Name": {
+      "Criterion Name": 7
+    }
+  },
+  "reasoning": {
+    "Option Name": "Brief explanation"
+  },
+  "constraintCompliance": {
+    "Option Name": 8
+  }
+}`;
+
+        try {
+            const response = await this.chat([
+                { role: 'system', content: 'You are an expert decision analyst. Consider all constraints when scoring. Always respond with valid JSON only.' },
+                { role: 'user', content: prompt }
+            ], { temperature: 0.5, maxTokens: 2500 });
+
+            const cleaned = response.trim().replace(/```json\n?|\n?```/g, '');
+            const result = JSON.parse(cleaned);
+
+            // Map scores back to option/criteria IDs
+            const scoredOptions = options.map(option => {
+                const optionScores = result.scores[option.name] || {};
+                const scores = {};
+
+                criteria.forEach(criterion => {
+                    const score = optionScores[criterion.name];
+                    if (typeof score === 'number') {
+                        scores[criterion.id] = Math.min(10, Math.max(0, Math.round(score)));
+                    } else {
+                        scores[criterion.id] = 5;
+                    }
+                });
+
+                return {
+                    ...option,
+                    scores,
+                    constraintCompliance: result.constraintCompliance?.[option.name] ?? undefined,
+                    aiReasoning: result.reasoning?.[option.name] || ''
+                };
+            });
+
+            return {
+                options: scoredOptions,
+                reasoning: result.reasoning || {}
+            };
+        } catch (e) {
+            console.error('Error auto-scoring with constraints:', e);
+            throw new Error('Failed to get AI scores: ' + e.message);
+        }
     }
 };
 
