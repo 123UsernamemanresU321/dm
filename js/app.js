@@ -134,20 +134,30 @@ const App = {
         btn.disabled = true;
 
         try {
-            const result = await AI.autoScore(title, options, criteria);
+            // Get constraints if available
+            const constraints = DecisionForm.getConstraints ? DecisionForm.getConstraints() : null;
+            const hasConstraints = constraints && (constraints.budget || constraints.deadline || constraints.notes);
 
-            // Update options with AI scores
+            // Use constraint-aware scoring if constraints exist
+            const result = hasConstraints
+                ? await AI.autoScoreWithConstraints(title, options, criteria, constraints)
+                : await AI.autoScore(title, options, criteria);
+
+            // Update options with AI scores (and constraint compliance if available)
             result.options.forEach(aiOption => {
                 const stateOption = DecisionForm.state.options.find(o => o.id === aiOption.id);
                 if (stateOption) {
                     stateOption.scores = aiOption.scores;
+                    if (aiOption.constraintCompliance !== undefined) {
+                        stateOption.constraintCompliance = aiOption.constraintCompliance;
+                    }
                 }
             });
 
             // Re-render the matrix
             DecisionForm.updateMatrix();
 
-            UI.toast('AI scored all options!', 'success');
+            UI.toast(hasConstraints ? 'AI scored with constraint analysis!' : 'AI scored all options!', 'success');
         } catch (e) {
             UI.toast(e.message, 'error');
         } finally {
