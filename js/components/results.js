@@ -128,6 +128,18 @@ const Results = {
 
         let html = `<p>${analysis.rationale}</p>`;
 
+        // Show constraint warnings if any
+        if (analysis.constraintWarnings && analysis.constraintWarnings.length > 0) {
+            html += `
+                <div class="constraint-warnings" style="margin-top: var(--spacing-md); padding: var(--spacing-sm); background: var(--color-warning-light); border-radius: var(--radius-md); border-left: 3px solid var(--color-warning);">
+                    <strong style="color: var(--color-warning);">⚠️ Constraint Considerations:</strong>
+                    <ul style="margin: var(--spacing-xs) 0 0 var(--spacing-md); padding: 0;">
+                        ${analysis.constraintWarnings.map(w => `<li style="font-size: var(--font-size-sm);">${this.escapeHtml(w)}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
         if (analysis.tradeoffs && analysis.tradeoffs.length > 0) {
             html += '<p style="margin-top: var(--spacing-md);"><strong>Trade-offs by option:</strong></p>';
             html += '<ul style="list-style: none; padding: 0; margin-top: var(--spacing-sm);">';
