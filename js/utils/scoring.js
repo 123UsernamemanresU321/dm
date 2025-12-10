@@ -34,9 +34,62 @@ const Scoring = {
     },
 
     /**
+     * Calculate constraint penalty for an option (0 to 1, where 1 = no penalty)
+     * Uses soft constraints - options over budget get penalized, not eliminated
+     */
+    calculateConstraintPenalty(option, constraints) {
+        if (!constraints) return { factor: 1.0, violations: [] };
+
+        let penaltyFactor = 1.0;
+        const violations = [];
+
+        // Budget constraint penalty
+        if (constraints.budget && option.estimatedCost) {
+            const budgetLimit = parseFloat(constraints.budget.replace(/[^0-9.]/g, ''));
+            const optionCost = parseFloat(option.estimatedCost);
+
+            if (!isNaN(budgetLimit) && !isNaN(optionCost) && budgetLimit > 0) {
+                const ratio = optionCost / budgetLimit;
+
+                if (ratio > 1.5) {
+                    // Severely over budget: 50% penalty
+                    penaltyFactor *= 0.5;
+                    violations.push({ type: 'budget', severity: 'severe', message: `${Math.round((ratio - 1) * 100)}% over budget` });
+                } else if (ratio > 1.0) {
+                    // Over budget: proportional penalty (up to 30%)
+                    penaltyFactor *= Math.max(0.7, 1 - (ratio - 1) * 0.6);
+                    violations.push({ type: 'budget', severity: 'moderate', message: `${Math.round((ratio - 1) * 100)}% over budget` });
+                } else if (ratio > 0.9) {
+                    // Approaching budget: small 5% penalty
+                    penaltyFactor *= 0.95;
+                    violations.push({ type: 'budget', severity: 'minor', message: 'Close to budget limit' });
+                }
+                // Under 90% of budget: no penalty (reward for being economical could be added)
+            }
+        }
+
+        // AI-analyzed constraint score (from notes analysis)
+        if (option.constraintCompliance !== undefined) {
+            // constraintCompliance is 0-10
+            const complianceFactor = 0.7 + (option.constraintCompliance / 10) * 0.3;
+            penaltyFactor *= complianceFactor;
+
+            if (option.constraintCompliance < 5) {
+                violations.push({
+                    type: 'notes',
+                    severity: option.constraintCompliance < 3 ? 'severe' : 'moderate',
+                    message: 'Low constraint compliance from notes'
+                });
+            }
+        }
+
+        return { factor: penaltyFactor, violations };
+    },
+
+    /**
      * Generate rankings for all options
      */
-    generateRankings(options, criteria) {
+    generateRankings(options, criteria, constraints = null) {
         if (!options.length || !criteria.length) {
             return { rankings: [], confidence: 0, analysis: null };
         }
@@ -44,16 +97,25 @@ const Scoring = {
         // Calculate scores for each option
         const scored = options.map(option => {
             const scoreData = this.calculateScore(option, criteria);
+            const constraintData = this.calculateConstraintPenalty(option, constraints);
+
+            // Apply constraint penalty to normalized score
+            const adjustedScore = scoreData.normalized * constraintData.factor;
+
             return {
                 ...option,
-                totalScore: scoreData.raw,
+                totalScore: scoreData.raw * constraintData.factor,
+                rawScore: scoreData.raw,
                 maxPossible: scoreData.max,
-                normalizedScore: scoreData.normalized,
+                normalizedScore: adjustedScore,
+                rawNormalizedScore: scoreData.normalized,
+                constraintPenalty: constraintData.factor,
+                constraintViolations: constraintData.violations,
                 criteriaScores: this.getCriteriaBreakdown(option, criteria)
             };
         });
 
-        // Sort by total score (descending)
+        // Sort by adjusted total score (descending)
         scored.sort((a, b) => b.totalScore - a.totalScore);
 
         // Add rank
@@ -65,7 +127,7 @@ const Scoring = {
         const confidence = this.calculateConfidence(scored);
 
         // Generate analysis
-        const analysis = this.generateAnalysis(scored, criteria);
+        const analysis = this.generateAnalysis(scored, criteria, constraints);
 
         return { rankings: scored, confidence, analysis };
     },
@@ -112,7 +174,7 @@ const Scoring = {
     /**
      * Generate analysis/rationale
      */
-    generateAnalysis(rankings, criteria) {
+    generateAnalysis(rankings, criteria, constraints = null) {
         if (rankings.length < 1) return null;
 
         const winner = rankings[0];
@@ -125,7 +187,13 @@ const Scoring = {
         const weaknesses = this.findWeaknesses(winner, rankings, criteria);
 
         // Generate rationale text
-        let rationale = `<strong>${winner.name}</strong> scores highest with ${winner.normalizedScore.toFixed(1)}/10. `;
+        let rationale = `<strong>${winner.name}</strong> scores highest with ${winner.normalizedScore.toFixed(1)}/10`;
+
+        // Add constraint penalty info if applicable
+        if (winner.constraintPenalty && winner.constraintPenalty < 1) {
+            rationale += ` (includes ${Math.round((1 - winner.constraintPenalty) * 100)}% constraint penalty)`;
+        }
+        rationale += '. ';
 
         if (strengths.length > 0) {
             rationale += `Key strengths include <strong>${strengths.map(s => s.name).join('</strong> and <strong>')}</strong>. `;
@@ -144,12 +212,25 @@ const Scoring = {
             rationale += `Note: The winner scores lower on <strong>${weaknesses.map(w => w.name).join('</strong> and <strong>')}</strong> — consider if these matter more than weighted.`;
         }
 
+        // Add constraint violation warnings
+        const constraintWarnings = [];
+        rankings.forEach(r => {
+            if (r.constraintViolations && r.constraintViolations.length > 0) {
+                r.constraintViolations.forEach(v => {
+                    if (v.severity === 'severe' || v.severity === 'moderate') {
+                        constraintWarnings.push(`${r.name}: ${v.message}`);
+                    }
+                });
+            }
+        });
+
         return {
             winner: winner.name,
             runnerUp: runnerUp ? runnerUp.name : null,
             strengths,
             weaknesses,
             rationale,
+            constraintWarnings,
             tradeoffs: this.generateTradeoffs(rankings, criteria)
         };
     },
